@@ -1,0 +1,59 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
+.DS_Store
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# env files — secrets NEVER get committed; .env.example is the only allowed one
+# (covers .env, .env.local, .env.development, .env.production, ...)
+.env*
+!.env.example
+
+# credentials — certificates, private keys, downloaded OAuth / service-account JSON, token caches
+*.pem
+*.key
+*.p12
+*.pfx
+client_secret*.json
+credentials*.json
+service-account*.json
+token.json
+tokens.json
+
+# local notes and AI-assistant settings (kept out of the repo)
+.context/
+.claude/
+CLAUDE.md
+AGENTS.md
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
