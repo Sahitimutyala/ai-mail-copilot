@@ -1,15 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useMailStore } from "@/store/mail-store";
 import { hasActiveFilters } from "@/lib/gmail/query";
 import { SearchIcon, XIcon } from "./icons";
 
 /**
  * Filter controls. Text inputs hold local state while typing and commit on
- * Enter/blur (avoids refetching Gmail on every keystroke); the useEffects
- * sync them back whenever the store changes from OUTSIDE — i.e. when the
- * AI assistant applies filters, the inputs visibly update.
+ * Enter/blur (avoids refetching Gmail on every keystroke). Whenever the store
+ * changes from OUTSIDE — i.e. when the AI assistant applies filters — the
+ * inputs are re-synced, so they visibly update.
  */
 export function FilterBar() {
   const filters = useMailStore((s) => s.filters);
@@ -19,8 +19,19 @@ export function FilterBar() {
   const [text, setText] = useState(filters.text ?? "");
   const [from, setFrom] = useState(filters.from ?? "");
 
-  useEffect(() => setText(filters.text ?? ""), [filters.text]);
-  useEffect(() => setFrom(filters.from ?? ""), [filters.from]);
+  // Re-sync when the store value changes: remember the last value seen and
+  // adjust state during render, which avoids the extra render an effect costs.
+  // https://react.dev/reference/react/useState#storing-information-from-previous-renders
+  const [seenText, setSeenText] = useState(filters.text);
+  if (filters.text !== seenText) {
+    setSeenText(filters.text);
+    setText(filters.text ?? "");
+  }
+  const [seenFrom, setSeenFrom] = useState(filters.from);
+  if (filters.from !== seenFrom) {
+    setSeenFrom(filters.from);
+    setFrom(filters.from ?? "");
+  }
 
   // Only commit real changes — setFilters closes the open email (a new
   // search should show the list), so a no-op blur must not trigger it.

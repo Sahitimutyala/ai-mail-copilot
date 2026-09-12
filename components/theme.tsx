@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 
 /**
  * Runs before first paint (injected in <head>) so the page never flashes the
@@ -8,17 +8,26 @@ import { useEffect, useState } from "react";
  */
 export const themeInitScript = `(function(){try{var t=localStorage.getItem('theme');var d=t?t==='dark':matchMedia('(prefers-color-scheme: dark)').matches;document.documentElement.classList.toggle('dark',d);}catch(e){}})();`;
 
-export function ThemeToggle() {
-  const [dark, setDark] = useState(false);
+// The <html> "dark" class (applied by the init script) is the source of truth;
+// watching it keeps the button icon in sync with whatever is actually shown.
+function subscribeToThemeClass(onChange: () => void) {
+  const observer = new MutationObserver(onChange);
+  observer.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ["class"],
+  });
+  return () => observer.disconnect();
+}
+const isDarkClassSet = () => document.documentElement.classList.contains("dark");
+// The server can't see the class: hydrate as light, then React re-renders with
+// the real value.
+const serverSnapshot = () => false;
 
-  // Sync button state with whatever the init script already applied.
-  useEffect(() => {
-    setDark(document.documentElement.classList.contains("dark"));
-  }, []);
+export function ThemeToggle() {
+  const dark = useSyncExternalStore(subscribeToThemeClass, isDarkClassSet, serverSnapshot);
 
   const toggle = () => {
     const next = !dark;
-    setDark(next);
     document.documentElement.classList.toggle("dark", next);
     try {
       localStorage.setItem("theme", next ? "dark" : "light");
